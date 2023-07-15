@@ -34,3 +34,10 @@ def test_merge_order():
     for _ in range(10):
         random.shuffle(tokens)
         assert clear_text == merge_text(tokens)
+
+
+def test_encoding():
+    """Test that split_text and merge_text accept custom encoding."""
+    clear_text = "こんにちは"
+    tokens = split_text(clear_text, encoding="CP932")
+    assert clear_text == merge_text(tokens, encoding="CP932")

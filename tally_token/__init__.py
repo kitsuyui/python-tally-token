@@ -4,12 +4,13 @@ import secrets
 
 
 def _generate_random_token(size: int) -> bytes:
-    # TODO: seed
     return secrets.token_bytes(size)
 
 
-def split_text(clear_text: str, into: int = 2) -> list[bytes]:
-    clear_text_bytes = bytes(clear_text, "utf-8")
+def split_text(
+    clear_text: str, into: int = 2, *, encoding: str = "utf-8"
+) -> list[bytes]:
+    clear_text_bytes = bytes(clear_text, encoding=encoding)
     return split_bytes_into(clear_text_bytes, into)
 
 
@@ -45,6 +46,6 @@ def merge_bytes_into(tokens: list[bytes]) -> bytes:
     return token
 
 
-def merge_text(tokens: list[bytes]) -> str:
+def merge_text(tokens: list[bytes], *, encoding: str = "utf-8") -> str:
     clear_text_bytes = merge_bytes_into(tokens)
-    return clear_text_bytes.decode("utf-8")
+    return clear_text_bytes.decode(encoding)
