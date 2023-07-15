@@ -6,6 +6,9 @@ tally-token is a Python library for split data into tokens with same length.
 
 [Tally](https://en.wikipedia.org/wiki/Tally_stick) is a historical object for prove something by splitting wood into tokens and matching tokens.
 
+<a href="https://en.wikipedia.org/wiki/Tally_stick#/media/File:Medieval_tally_sticks.jpg" target="_blank"><img src="https://github.com/kitsuyui/python-tally-token/assets/2596972/103a0184-c508-4ce6-9ed3-1b1eb58bc6cc" style="width:20rem" /></a>
+> Medieval English split tally stick (front and reverse view). The stick is notched and inscribed to record a debt owed to the rural dean of Preston Candover, Hampshire, of a tithe of 20d each on 32 sheep, amounting to a total sum of £2 13s. 4d.
+
 # Usage
 
 ## Install
@@ -68,6 +71,13 @@ This is useful for split binary data.
 >>> merge_bytes_into([b'\xc5b\xf4E)\xe1vO8\xff@\xf9\xdd', b'\x84\xb9X#\x85\xf5\xed\xbcM\xc4\xef\xf4\xd3', b'\xb47\xf6\xfa?\x14\xa8`\xc9\xe0\xe5\x87\x14', b'\x1cd\xb4o\xe8I:\xe5\xf6\x13\xe5\x93G', b'\xa1\xed\x82\x9f\x14e)!%\xba\xc3}|'])
 b'Hello, World!'
 ```
+
+# Reference
+
+- Tally stick https://en.wikipedia.org/wiki/Tally_stick
+- Tessera or Symbolum (Hospitium token) https://en.wikipedia.org/wiki/Hospitium
+- 割符 https://ja.wikipedia.org/wiki/%E5%89%B2%E7%AC%A6
+- One-time pad https://en.wikipedia.org/wiki/One-time_pad
 
 # LICENSE
 
