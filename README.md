@@ -22,6 +22,36 @@ tally-token is a Python library for split data into tokens with same length.
 $ pip install tally-token
 ```
 
+## CLI Usage
+
+```sh
+$ tally-token --help
+usage: tally-token [-h] {split,merge} ...
+
+positional arguments:
+  {split,merge}  Commands: split: split a file into multiple files merge: merge multiple files into a fileExample: tally-token split example.bin
+                 example.bin.1 example.bin.2 example.bin.3 tally-token merge example-merged.bin example.bin.1 example.bin.2 example.bin.3
+
+options:
+  -h, --help     show this help message and exit
+```
+
+### split
+
+You can use `split` to split a file into multiple files.
+
+```sh
+$ tally-token split something.bin split-1.bin split-2.bin split-3.bin
+```
+
+### merge
+
+You can use `merge` to merge multiple files into a file.
+
+```sh
+$ tally-token merge merged.bin split-1.bin split-2.bin split-3.bin
+```
+
 ## Example
 
 ### split
