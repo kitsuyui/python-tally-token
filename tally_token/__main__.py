@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 
 from tally_token import merge_bytes_into, split_bytes_into
