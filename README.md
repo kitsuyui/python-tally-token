@@ -1,5 +1,10 @@
 # python-tally-token
 
+[![Python](https://img.shields.io/pypi/pyversions/tally-token.svg?style=plastic)](https://badge.fury.io/py/tally-token)
+[![PyPI version shields.io](https://img.shields.io/pypi/v/tally-token.svg)](https://pypi.python.org/pypi/tally-token/)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![codecov](https://codecov.io/gh/kitsuyui/python-tally-token/branch/main/graph/badge.svg?token=OJ8QRXTTE9)](https://codecov.io/gh/kitsuyui/python-tally-token)
+
 ## What is this?
 
 tally-token is a Python library for split data into tokens with same length.
