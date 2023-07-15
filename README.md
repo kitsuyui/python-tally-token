@@ -28,7 +28,7 @@ $ pip install tally-token
 
 ```python
 >>> from tally_token import merge_text
->>> merge_text(b'qQ\xa5\x97\x84\x88\xd7U%\xfb(k\xa1', b'94\xc9\xfb\xeb\xa4\xf7\x02J\x89D\x0f\x80')
+>>> merge_text([b'qQ\xa5\x97\x84\x88\xd7U%\xfb(k\xa1', b'94\xc9\xfb\xeb\xa4\xf7\x02J\x89D\x0f\x80'])
 'Hello, World!'
 ```
 
