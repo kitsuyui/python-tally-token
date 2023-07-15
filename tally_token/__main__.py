@@ -26,14 +26,22 @@ def main() -> None:
     subparsers = parser.add_subparsers(
         required=True,
         dest="command",
+        help=(
+            "Commands:\n"
+            "split: split a file into multiple files\n"
+            "merge: merge multiple files into a file"
+            "Example:\n"
+            "tally-token split example.bin example.bin.1 example.bin.2 example.bin.3\n"
+            "tally-token merge example-merged.bin example.bin.1 example.bin.2 example.bin.3"
+        ),
     )
     split_parser = subparsers.add_parser("split")
-    split_parser.add_argument("src")
-    split_parser.add_argument("dst", nargs="+")
+    split_parser.add_argument("src", help="The source file to be split.")
+    split_parser.add_argument("dst", nargs="+", help="The destination files.")
 
     merge_parser = subparsers.add_parser("merge")
-    merge_parser.add_argument("dst")
-    merge_parser.add_argument("src", nargs="+")
+    merge_parser.add_argument("dst", help="The destination file.")
+    merge_parser.add_argument("src", nargs="+", help="The source files.")
 
     args = parser.parse_args()
     if args.command == "split":
