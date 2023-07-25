@@ -1,26 +1,29 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 
-from tally_token import merge_bytes_into, split_bytes_into
-
-
-def split_main(*, source_path: str, dest_paths: str) -> None:
-    with open(source_path, "rb") as f:
-        source = f.read()
-    tokens = split_bytes_into(source, len(dest_paths))
-    for token, dest_path in zip(tokens, dest_paths):
-        with open(dest_path, "wb") as f:
-            f.write(token)
+from tally_token import merge_io, split_io
 
 
-def merge_main(*, dest_path: str, source_paths: str) -> None:
-    tokens = []
-    for source_path in source_paths:
-        with open(source_path, "rb") as f:
-            tokens.append(f.read())
-    with open(dest_path, "wb") as f:
-        f.write(merge_bytes_into(tokens))
+def split_main(
+    *, source_path: str, dest_paths: str, bufsize: int = 1024
+) -> None:
+    # ensure closing all the files even if an exception is raised
+    with ExitStack() as stack:
+        infile = stack.enter_context(open(source_path, "rb"))
+        outfiles = [stack.enter_context(open(p, "wb")) for p in dest_paths]
+        split_io(infile, list(outfiles), bufsize=bufsize)
+
+
+def merge_main(
+    *, dest_path: str, source_paths: str, bufsize: int = 1024
+) -> None:
+    # ensure closing all the files even if an exception is raised
+    with ExitStack() as stack:
+        outfile = stack.enter_context(open(dest_path, "wb"))
+        infiles = [stack.enter_context(open(p, "rb")) for p in source_paths]
+        merge_io(infiles, outfile, bufsize=bufsize)
 
 
 def main() -> None:
@@ -40,10 +43,16 @@ def main() -> None:
     split_parser = subparsers.add_parser("split")
     split_parser.add_argument("src", help="The source file to be split.")
     split_parser.add_argument("dst", nargs="+", help="The destination files.")
+    split_parser.add_argument(
+        "--bufsize", type=int, default=1024 * 2, help="The buffer size."
+    )
 
     merge_parser = subparsers.add_parser("merge")
     merge_parser.add_argument("dst", help="The destination file.")
     merge_parser.add_argument("src", nargs="+", help="The source files.")
+    merge_parser.add_argument(
+        "--bufsize", type=int, default=1024**2, help="The buffer size."
+    )
 
     args = parser.parse_args()
     if args.command == "split":

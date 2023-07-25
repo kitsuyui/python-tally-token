@@ -6,6 +6,7 @@ The secret can be recovered only if all the tokens are merged together.
 from __future__ import annotations
 
 import secrets
+from io import BufferedReader, BufferedWriter
 
 
 def split_text(
@@ -20,6 +21,30 @@ def split_text(
     """
     clear_text_bytes = bytes(clear_text, encoding=encoding)
     return split_bytes_into(clear_text_bytes, into)
+
+
+def split_io(
+    infile: BufferedReader,
+    outfiles: list[BufferedWriter],
+    *,
+    bufsize: int = 1024,
+) -> None:
+    """Split a file into multiple tokens.
+
+    Args:
+        infile: The file to be split.
+        outfiles: The files to be written.
+        bufsize: The buffer size of reading and writing.
+    """
+    output_sizes = len(outfiles)
+    for buf in iter(lambda: infile.read(bufsize), b""):
+        token_bytes = split_bytes_into(buf, output_sizes)
+        for token, outfile in zip(token_bytes, outfiles):
+            outfile.write(token)
+
+    # flush all the files
+    for outfile in outfiles:
+        outfile.flush()
 
 
 def _split1(source: bytes) -> tuple[bytes, bytes]:
@@ -74,6 +99,27 @@ def merge_text(tokens: list[bytes], *, encoding: str = "utf-8") -> str:
     """
     clear_text_bytes = merge_bytes_into(tokens)
     return clear_text_bytes.decode(encoding)
+
+
+def merge_io(
+    infiles: list[BufferedReader],
+    outfile: BufferedWriter,
+    *,
+    bufsize: int = 1024,
+) -> None:
+    """Merge tokens into a file.
+
+    Args:
+        infiles: The files to be read.
+        outfile: The file to be written.
+    """
+    token_bytes = []
+    while True:
+        token_bytes = [infile.read(bufsize) for infile in infiles]
+        clear_text_bytes = merge_bytes_into(token_bytes)
+        if not clear_text_bytes:
+            break
+        outfile.write(clear_text_bytes)
 
 
 def _generate_random_token(size: int) -> bytes:
