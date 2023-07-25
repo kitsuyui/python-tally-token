@@ -52,6 +52,20 @@ You can use `merge` to merge multiple files into a file.
 $ tally-token merge merged.bin split-1.bin split-2.bin split-3.bin
 ```
 
+### Large files
+
+Nothing special. You can split and merge large file.
+
+```sh
+$ dd if=/dev/urandom of=original.1g.bin bs=1G count=1
+$ tally-token split original.1g.bin split-1.bin split-2.bin split-3.bin
+$ shasum -a 256 original.1g.bin
+> 736a344d99d27e2dcdab8bc37ca94c83eda26f812a3dee87ac98989f89b3f965 original.1g.bin
+$ tally-token merge recovery.1g.bin split-1.bin split-2.bin split-3.bin
+$ shasum -a 256 recovery.1g.bin
+> 736a344d99d27e2dcdab8bc37ca94c83eda26f812a3dee87ac98989f89b3f965 recovery.1g.bin
+```
+
 ## Example
 
 ### split
