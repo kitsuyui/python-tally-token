@@ -1,6 +1,3 @@
-[tool.black]
-line-length = 79
-
 [tool.poetry]
 # I use poetry as just a package manager.
 # So, I only write the settings that poetry needs.
@@ -18,13 +15,9 @@ packages = [
 python = "^3.8"
 
 [tool.poetry.group.dev.dependencies]
-black = "*"
+ruff = "*"
 pytest = "*"
-isort = "*"
-pyupgrade = "*"
 pytest-cov = "*"
-flake8 = "*"
-mypy = "*"
 poethepoet = "*"
 setuptools-scm = "*"
 build = "*"
@@ -41,17 +34,8 @@ write_to = "tally_token/_version.py"
 [tool.poe.tasks]
 test = "pytest"
 coverage-xml = "pytest --cov=tally_token --doctest-modules --cov-report=xml"
-format = [
-    { cmd = "isort tally_token"},
-    { cmd = "black tally_token"},
-    { cmd = "pyupgrade --py38-plus tally_token/*.py"},
-]
-check = [
-    { cmd = "isort --check-only --diff tally_token"},
-    { cmd = "black --check --diff tally_token"},
-    { cmd = "flake8 tally_token"},
-    { cmd = "mypy tally_token"},
-]
+format = "ruff format tally_token"
+check = "ruff check tally_token"
 build = [
     { cmd = "python -m build"}
 ]
@@ -65,3 +49,6 @@ ignore_missing_imports = false
 disallow_untyped_defs = false
 warn_return_any = false
 ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 79
