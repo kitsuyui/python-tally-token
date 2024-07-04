@@ -21,6 +21,7 @@ pytest-cov = "*"
 poethepoet = "*"
 setuptools-scm = "*"
 build = "*"
+mypy = "*"
 
 [build-system]
 requires = [
@@ -35,20 +36,16 @@ write_to = "tally_token/_version.py"
 test = "pytest"
 coverage-xml = "pytest --cov=tally_token --doctest-modules --cov-report=xml"
 format = "ruff format tally_token"
-check = "ruff check tally_token"
+check = [
+    { cmd = "ruff check tally_token" },
+    { cmd = "mypy tally_token" },
+]
 build = [
     { cmd = "python -m build"}
 ]
 [tool.mypy]
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
+strict = true
 ignore_missing_imports = false
-
-[tool.mypy-tests."*"]
-disallow_untyped_defs = false
-warn_return_any = false
-ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 79
