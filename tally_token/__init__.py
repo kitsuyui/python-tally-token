@@ -3,6 +3,7 @@
 This module provides a simple way to split a secret into multiple tokens.
 The secret can be recovered only if all the tokens are merged together.
 """
+
 from __future__ import annotations
 
 import secrets
