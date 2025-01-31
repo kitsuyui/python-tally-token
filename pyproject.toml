@@ -1,27 +1,37 @@
-[tool.poetry]
-# I use poetry as just a package manager.
-# So, I only write the settings that poetry needs.
-# The actual package metadata is written in setup.cfg.
-# I use pypa/build for packaging.
+[project]
 name = "tally-token"
-version = "0.0.0"
-description = ""
-authors = []
-packages = [
-    { include = "tally_token" },
+dynamic = ["version"]
+requires-python = ">=3.9"
+dependencies = []
+description = "A library to split data into tokens"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = { file = "LICENSE" }
+authors = [
+    {name = "Yui KITSU", email = "kitsuyui+github@kitsuyui.com"}
 ]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: BSD License",
+    "Topic :: Security :: Cryptography",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Intended Audience :: Developers",
+]
+[project.urls]
+Homepage = "https://github.com/kitsuyui/python-tally-token"
 
-[tool.poetry.dependencies]
-python = "^3.9"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "*"
-pytest = "*"
-pytest-cov = "*"
-poethepoet = "*"
-setuptools-scm = "*"
-build = "*"
-mypy = "*"
+[tool.uv]
+dev-dependencies = [
+    "pytest",
+    "pytest-cov",
+    "poethepoet",
+    "setuptools-scm",
+    "ruff",
+    "mypy",
+]
 
 [build-system]
 requires = [
@@ -29,8 +39,14 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+package-data = { "tally_token" = ["py.typed"], "*" = ["README.md, LICENSE"] }
+package-dir = { "tally_token" = "tally_token" }
+
 [tool.setuptools_scm]
 write_to = "tally_token/_version.py"
+version_scheme = "only-version"
+local_scheme = "no-local-version"
 
 [tool.poe.tasks]
 test = "pytest"
