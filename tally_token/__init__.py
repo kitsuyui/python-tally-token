@@ -9,6 +9,9 @@ from __future__ import annotations
 import secrets
 from io import BufferedReader, BufferedWriter
 
+# https://packaging-guide.openastronomy.org/en/latest/advanced/versioning.html
+from ._version import __version__
+
 
 def split_text(
     clear_text: str, into: int = 2, *, encoding: str = "utf-8"
@@ -125,3 +128,14 @@ def merge_io(
 
 def _generate_random_token(size: int) -> bytes:
     return secrets.token_bytes(size)
+
+
+__all__ = [
+    "split_text",
+    "split_io",
+    "split_bytes_into",
+    "merge_text",
+    "merge_io",
+    "merge_bytes_into",
+    "__version__",
+]
