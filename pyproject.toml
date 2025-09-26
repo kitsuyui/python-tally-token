@@ -23,8 +23,8 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/kitsuyui/python-tally-token"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pytest",
     "pytest-cov",
     "poethepoet",
