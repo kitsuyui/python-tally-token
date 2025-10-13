@@ -1,7 +1,7 @@
 [project]
 name = "tally-token"
 dynamic = ["version"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = []
 description = "A library to split data into tokens"
 readme = {file = "README.md", content-type = "text/markdown"}
@@ -13,11 +13,11 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: BSD License",
     "Topic :: Security :: Cryptography",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Intended Audience :: Developers",
 ]
 [project.urls]
