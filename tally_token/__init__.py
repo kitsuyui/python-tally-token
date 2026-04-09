@@ -14,7 +14,7 @@ from ._version import __version__
 
 
 def split_text(
-    clear_text: str, into: int = 2, *, encoding: str = "utf-8"
+    clear_text: str, into: int = 2, *, encoding: str = "utf-8",
 ) -> list[bytes]:
     """Split a text into multiple tokens.
 
@@ -43,7 +43,7 @@ def split_io(
     output_sizes = len(outfiles)
     for buf in iter(lambda: infile.read(bufsize), b""):
         token_bytes = split_bytes_into(buf, output_sizes)
-        for token, outfile in zip(token_bytes, outfiles):
+        for token, outfile in zip(token_bytes, outfiles, strict=False):
             outfile.write(token)
 
     # flush all the files
@@ -131,11 +131,11 @@ def _generate_random_token(size: int) -> bytes:
 
 
 __all__ = [
-    "split_text",
-    "split_io",
-    "split_bytes_into",
-    "merge_text",
-    "merge_io",
-    "merge_bytes_into",
     "__version__",
+    "merge_bytes_into",
+    "merge_io",
+    "merge_text",
+    "split_bytes_into",
+    "split_io",
+    "split_text",
 ]

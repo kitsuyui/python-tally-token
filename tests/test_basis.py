@@ -1,5 +1,9 @@
 import random
-from tally_token import split_text, merge_text, split_bytes_into, merge_bytes_into
+
+from tally_token import (
+    merge_text,
+    split_text,
+)
 
 
 def test_split_merge():
