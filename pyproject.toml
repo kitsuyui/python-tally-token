@@ -104,3 +104,6 @@ select = [
     "S101",
     "S607",
 ]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 3

@@ -42,11 +42,22 @@ def split_io(
     """
     output_sizes = len(outfiles)
     for buf in iter(lambda: infile.read(bufsize), b""):
-        token_bytes = split_bytes_into(buf, output_sizes)
-        for token, outfile in zip(token_bytes, outfiles, strict=False):
-            outfile.write(token)
+        write_split_tokens(buf, outfiles, output_sizes)
 
-    # flush all the files
+    flush_outputs(outfiles)
+
+
+def write_split_tokens(
+    source: bytes,
+    outfiles: list[BufferedWriter],
+    output_sizes: int,
+) -> None:
+    token_bytes = split_bytes_into(source, output_sizes)
+    for token, outfile in zip(token_bytes, outfiles, strict=False):
+        outfile.write(token)
+
+
+def flush_outputs(outfiles: list[BufferedWriter]) -> None:
     for outfile in outfiles:
         outfile.flush()
 
