@@ -14,7 +14,10 @@ from ._version import __version__
 
 
 def split_text(
-    clear_text: str, into: int = 2, *, encoding: str = "utf-8",
+    clear_text: str,
+    into: int = 2,
+    *,
+    encoding: str = "utf-8",
 ) -> list[bytes]:
     """Split a text into multiple tokens.
 
@@ -101,6 +104,12 @@ def merge_bytes_into(tokens: list[bytes]) -> bytes:
     """
     token = tokens[0]
     for i in range(1, len(tokens)):
+        if len(tokens[i]) != len(token):
+            msg = (
+                f"token at index {i} has length {len(tokens[i])}, "
+                f"expected {len(token)}"
+            )
+            raise ValueError(msg)
         token = _merge1(token, tokens[i])
     return token
 
