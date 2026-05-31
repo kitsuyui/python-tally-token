@@ -144,6 +144,7 @@ def merge_io(
         if not clear_text_bytes:
             break
         outfile.write(clear_text_bytes)
+    outfile.flush()
 
 
 def _generate_random_token(size: int) -> bytes:
