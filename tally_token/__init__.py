@@ -24,7 +24,9 @@ def split_text(
     Args:
         clear_text: The text to be split.
         into: The number of tokens to be generated.
-        encoding: The encoding of the text.
+        encoding: The encoding used to convert text to bytes. Tokens do
+            not store this value; pass the same encoding to merge_text to
+            recover the original text.
     """
     clear_text_bytes = bytes(clear_text, encoding=encoding)
     return split_bytes_into(clear_text_bytes, into)
@@ -119,7 +121,9 @@ def merge_text(tokens: list[bytes], *, encoding: str = "utf-8") -> str:
 
     Args:
         tokens: The tokens to be merged.
-        encoding: The encoding of the text.
+        encoding: The encoding used to decode the merged bytes. It must
+            match the encoding passed to split_text because tokens do not
+            carry encoding metadata.
     """
     clear_text_bytes = merge_bytes_into(tokens)
     return clear_text_bytes.decode(encoding)
