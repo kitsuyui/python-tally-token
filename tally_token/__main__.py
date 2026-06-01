@@ -8,27 +8,43 @@ from tally_token import merge_io, split_io
 
 
 def split_main(
-    *, source_path: str, dest_paths: list[str], bufsize: int = 1024,
+    *,
+    source_path: str,
+    dest_paths: list[str],
+    bufsize: int = 1024,
 ) -> None:
     # ensure closing all the files even if an exception is raised
     with ExitStack() as stack:
         infile = stack.enter_context(Path(source_path).open("rb"))
         outfiles = [
-            stack.enter_context(Path(path).open("wb"))
-            for path in dest_paths
+            stack.enter_context(Path(path).open("wb")) for path in dest_paths
         ]
         split_io(infile, list(outfiles), bufsize=bufsize)
 
 
+def _check_token_file_sizes(source_paths: list[str]) -> None:
+    sizes = [(p, Path(p).stat().st_size) for p in source_paths]
+    unique_sizes = {s for _, s in sizes}
+    if len(unique_sizes) > 1:
+        details = ", ".join(f"{p!r}: {s} bytes" for p, s in sizes)
+        raise ValueError(
+            "token files have mismatched sizes; they may be truncated or from "
+            f"different split operations ({details})",
+        )
+
+
 def merge_main(
-    *, dest_path: str, source_paths: list[str], bufsize: int = 1024,
+    *,
+    dest_path: str,
+    source_paths: list[str],
+    bufsize: int = 1024,
 ) -> None:
+    _check_token_file_sizes(source_paths)
     # ensure closing all the files even if an exception is raised
     with ExitStack() as stack:
         outfile = stack.enter_context(Path(dest_path).open("wb"))
         infiles = [
-            stack.enter_context(Path(path).open("rb"))
-            for path in source_paths
+            stack.enter_context(Path(path).open("rb")) for path in source_paths
         ]
         merge_io(infiles, outfile, bufsize=bufsize)
 
@@ -53,14 +69,20 @@ def main() -> None:
     split_parser.add_argument("src", help="The source file to be split.")
     split_parser.add_argument("dst", nargs="+", help="The destination files.")
     split_parser.add_argument(
-        "--bufsize", type=int, default=1024 * 2, help="The buffer size.",
+        "--bufsize",
+        type=int,
+        default=1024 * 2,
+        help="The buffer size.",
     )
 
     merge_parser = subparsers.add_parser("merge")
     merge_parser.add_argument("dst", help="The destination file.")
     merge_parser.add_argument("src", nargs="+", help="The source files.")
     merge_parser.add_argument(
-        "--bufsize", type=int, default=1024**2, help="The buffer size.",
+        "--bufsize",
+        type=int,
+        default=1024**2,
+        help="The buffer size.",
     )
 
     args = parser.parse_args()
