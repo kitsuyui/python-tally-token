@@ -85,6 +85,9 @@ def split_bytes_into(source: bytes, into: int) -> list[bytes]:
         source: The bytes to be split.
         into: The number of tokens to be generated.
     """
+    if into <= 0:
+        msg = f"n must be a positive integer, got {into}"
+        raise ValueError(msg)
     tokens = []
     token = source
     for _ in range(into - 1):
@@ -101,12 +104,19 @@ def _merge1(token1: bytes, token2: bytes) -> bytes:
     return bytes(clear_text)
 
 
+def _validate_tokens_nonempty(tokens: list[bytes]) -> None:
+    if not tokens:
+        msg = "tokens must not be empty"
+        raise ValueError(msg)
+
+
 def merge_bytes_into(tokens: list[bytes]) -> bytes:
     """Merge tokens into a secret bytes.
 
     Args:
         tokens: The tokens to be merged.
     """
+    _validate_tokens_nonempty(tokens)
     token = tokens[0]
     for i in range(1, len(tokens)):
         if len(tokens[i]) != len(token):
