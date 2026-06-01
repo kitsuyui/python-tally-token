@@ -45,12 +45,12 @@ def split_io(
     """
     output_sizes = len(outfiles)
     for buf in iter(lambda: infile.read(bufsize), b""):
-        write_split_tokens(buf, outfiles, output_sizes)
+        _write_split_tokens(buf, outfiles, output_sizes)
 
-    flush_outputs(outfiles)
+    _flush_outputs(outfiles)
 
 
-def write_split_tokens(
+def _write_split_tokens(
     source: bytes,
     outfiles: list[BufferedWriter],
     output_sizes: int,
@@ -60,7 +60,7 @@ def write_split_tokens(
         outfile.write(token)
 
 
-def flush_outputs(outfiles: list[BufferedWriter]) -> None:
+def _flush_outputs(outfiles: list[BufferedWriter]) -> None:
     for outfile in outfiles:
         outfile.flush()
 
@@ -73,16 +73,16 @@ def _split1(source: bytes) -> tuple[bytes, bytes]:
     return bytes(token), bytes(cipher_text)
 
 
-def split_bytes_into(source: bytes, n: int) -> list[bytes]:
+def split_bytes_into(source: bytes, into: int) -> list[bytes]:
     """Split a bytes into multiple token bytes.
 
     Args:
         source: The bytes to be split.
-        n: The number of tokens to be generated.
+        into: The number of tokens to be generated.
     """
     tokens = []
     token = source
-    for _ in range(n - 1):
+    for _ in range(into - 1):
         generated, token = _split1(token)
         tokens.append(generated)
     tokens.append(token)
