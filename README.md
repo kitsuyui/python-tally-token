@@ -30,7 +30,7 @@ usage: tally-token [-h] {split,merge} ...
 
 positional arguments:
   {split,merge}  Commands: split: split a file into multiple files merge: merge multiple files into a fileExample: tally-token split example.bin
-                 example.bin.1 example.bin.2 example.bin.3 tally-token merge example-merged.bin example.bin.1 example.bin.2 example.bin.3
+                 example.bin.1 example.bin.2 example.bin.3 tally-token merge example.bin.1 example.bin.2 example.bin.3 --output example-merged.bin
 
 options:
   -h, --help     show this help message and exit
@@ -49,7 +49,7 @@ $ tally-token split something.bin split-1.bin split-2.bin split-3.bin
 You can use `merge` to merge multiple files into a file.
 
 ```sh
-$ tally-token merge merged.bin split-1.bin split-2.bin split-3.bin
+$ tally-token merge split-1.bin split-2.bin split-3.bin --output merged.bin
 ```
 
 ### Large files
@@ -61,7 +61,7 @@ $ dd if=/dev/urandom of=original.1g.bin bs=1G count=1
 $ tally-token split original.1g.bin split-1.bin split-2.bin split-3.bin
 $ shasum -a 256 original.1g.bin
 > 736a344d99d27e2dcdab8bc37ca94c83eda26f812a3dee87ac98989f89b3f965 original.1g.bin
-$ tally-token merge recovery.1g.bin split-1.bin split-2.bin split-3.bin
+$ tally-token merge split-1.bin split-2.bin split-3.bin --output recovery.1g.bin
 $ shasum -a 256 recovery.1g.bin
 > 736a344d99d27e2dcdab8bc37ca94c83eda26f812a3dee87ac98989f89b3f965 recovery.1g.bin
 ```
