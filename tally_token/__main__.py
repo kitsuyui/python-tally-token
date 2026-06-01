@@ -4,7 +4,7 @@ import argparse
 from contextlib import ExitStack
 from pathlib import Path
 
-from tally_token import merge_io, split_io
+from tally_token import __version__, merge_io, split_io
 
 
 def split_main(
@@ -35,6 +35,11 @@ def merge_main(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"tally-token {__version__}",
+    )
     subparsers = parser.add_subparsers(
         required=True,
         dest="command",
