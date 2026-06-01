@@ -6,11 +6,14 @@ The secret can be recovered only if all the tokens are merged together.
 
 from __future__ import annotations
 
+import logging
 import secrets
 from io import BufferedReader, BufferedWriter
 
 # https://packaging-guide.openastronomy.org/en/latest/advanced/versioning.html
 from ._version import __version__
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 
 def split_text(
