@@ -65,9 +65,13 @@ def main() -> None:
 
     args = parser.parse_args()
     if args.command == "split":
-        split_main(source_path=args.src, dest_paths=args.dst)
+        split_main(
+            source_path=args.src, dest_paths=args.dst, bufsize=args.bufsize,
+        )
     elif args.command == "merge":
-        merge_main(dest_path=args.dst, source_paths=args.src)
+        merge_main(
+            dest_path=args.dst, source_paths=args.src, bufsize=args.bufsize,
+        )
 
 
 if __name__ == "__main__":
