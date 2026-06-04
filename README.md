@@ -108,6 +108,11 @@ You can use `merge_text` to merge tokens into text. `merge_text` returns clearte
 'こんにちは'
 ```
 
+The returned tokens are opaque bytes and do not store the encoding name. When
+splitting text with a custom encoding, keep that encoding out of band and pass
+the same value to `merge_text`; using a different encoding can raise
+`UnicodeDecodeError` or return mojibake if the bytes happen to decode.
+
 ### bytes interface
 
 You can use `split_bytes_into` and `merge_bytes_into` to split and merge bytes.
@@ -120,6 +125,20 @@ This is useful for split binary data.
 >>> merge_bytes_into([b'\xc5b\xf4E)\xe1vO8\xff@\xf9\xdd', b'\x84\xb9X#\x85\xf5\xed\xbcM\xc4\xef\xf4\xd3', b'\xb47\xf6\xfa?\x14\xa8`\xc9\xe0\xe5\x87\x14', b'\x1cd\xb4o\xe8I:\xe5\xf6\x13\xe5\x93G', b'\xa1\xed\x82\x9f\x14e)!%\xba\xc3}|'])
 b'Hello, World!'
 ```
+
+# Security and Logging
+
+This library handles secret material (token bytes) and follows a
+**log-nothing policy**: no secret data should appear in log output.
+
+- The library installs a `NullHandler` on its root logger so log records
+  are silently discarded unless the *application* configures a handler.
+  This is the [standard practice for libraries](https://docs.python.org/3/howto/logging.html#configuring-logging-for-a-library).
+- **Do not log token bytes or plain-text secrets** in your application code.
+  Functions such as `split_bytes_into`, `_split1`, `write_split_tokens`, and
+  `merge_bytes_into` operate directly on secret material.
+- If you add debug logging to code that calls this library, ensure no
+  token content is captured in log records or exception messages.
 
 # Reference
 

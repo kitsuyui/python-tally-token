@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from contextlib import ExitStack
 from pathlib import Path
 
-from tally_token import merge_io, split_io
+from tally_token import __version__, merge_io, split_io
 
 
 def split_main(
@@ -39,6 +40,11 @@ def merge_main(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"tally-token {__version__}",
+    )
     subparsers = parser.add_subparsers(
         required=True,
         dest="command",
@@ -75,10 +81,26 @@ def main() -> None:
 
     args = parser.parse_args()
     if args.command == "split":
-        split_main(source_path=args.src, dest_paths=args.dst)
+        split_main(
+            source_path=args.src,
+            dest_paths=args.dst,
+            bufsize=args.bufsize,
+        )
     elif args.command == "merge":
-        merge_main(dest_path=args.dst, source_paths=args.src)
+        merge_main(
+            dest_path=args.dst,
+            source_paths=args.src,
+            bufsize=args.bufsize,
+        )
+
+
+def _cli_entry() -> None:
+    try:
+        main()
+    except (OSError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":
-    main()
+    _cli_entry()

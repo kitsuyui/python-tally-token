@@ -73,3 +73,11 @@ def test_encoding():
     clear_text = "こんにちは"
     tokens = split_text(clear_text, encoding="CP932")
     assert clear_text == merge_text(tokens, encoding="CP932")
+
+
+def test_merge_text_requires_same_encoding():
+    """Test that text tokens require the original encoding."""
+    tokens = split_text("こんにちは", encoding="CP932")
+
+    with pytest.raises(UnicodeDecodeError):
+        merge_text(tokens, encoding="utf-8")

@@ -1,5 +1,22 @@
 import subprocess
+import sys
 import tempfile
+
+from tally_token import __version__
+
+
+def test_cli_version():
+    """Test the CLI version output."""
+    result = subprocess.run(
+        [sys.executable, "-m", "tally_token", "--version"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert result.stdout == f"tally-token {__version__}\n"
+    assert result.stderr == ""
 
 
 def test_cli():

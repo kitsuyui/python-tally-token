@@ -20,6 +20,9 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Intended Audience :: Developers",
 ]
+[project.scripts]
+tally-token = "tally_token.__main__:main"
+
 [project.urls]
 Homepage = "https://github.com/kitsuyui/python-tally-token"
 
