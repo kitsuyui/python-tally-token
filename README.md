@@ -108,6 +108,11 @@ You can use `merge_text` to merge tokens into text. `merge_text` returns clearte
 'こんにちは'
 ```
 
+The returned tokens are opaque bytes and do not store the encoding name. When
+splitting text with a custom encoding, keep that encoding out of band and pass
+the same value to `merge_text`; using a different encoding can raise
+`UnicodeDecodeError` or return mojibake if the bytes happen to decode.
+
 ### bytes interface
 
 You can use `split_bytes_into` and `merge_bytes_into` to split and merge bytes.
