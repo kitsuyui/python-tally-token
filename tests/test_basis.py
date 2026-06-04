@@ -110,3 +110,11 @@ def test_check_token_file_sizes_passes_equal_sizes():
             (p / f"token{i}.bin").write_bytes(b"x" * 100)
         paths = [str(p / f"token{i}.bin") for i in range(3)]
         _check_token_file_sizes(paths)  # Should not raise
+
+
+def test_merge_text_requires_same_encoding():
+    """Test that text tokens require the original encoding."""
+    tokens = split_text("こんにちは", encoding="CP932")
+
+    with pytest.raises(UnicodeDecodeError):
+        merge_text(tokens, encoding="utf-8")

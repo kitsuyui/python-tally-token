@@ -6,11 +6,14 @@ The secret can be recovered only if all the tokens are merged together.
 
 from __future__ import annotations
 
+import logging
 import secrets
 from io import BufferedReader, BufferedWriter
 
 # https://packaging-guide.openastronomy.org/en/latest/advanced/versioning.html
 from ._version import __version__
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 
 def split_text(
@@ -24,7 +27,9 @@ def split_text(
     Args:
         clear_text: The text to be split.
         into: The number of tokens to be generated.
-        encoding: The encoding of the text.
+        encoding: The encoding used to convert text to bytes. Tokens do
+            not store this value; pass the same encoding to merge_text to
+            recover the original text.
     """
     clear_text_bytes = bytes(clear_text, encoding=encoding)
     return split_bytes_into(clear_text_bytes, into)
@@ -45,12 +50,12 @@ def split_io(
     """
     output_sizes = len(outfiles)
     for buf in iter(lambda: infile.read(bufsize), b""):
-        write_split_tokens(buf, outfiles, output_sizes)
+        _write_split_tokens(buf, outfiles, output_sizes)
 
-    flush_outputs(outfiles)
+    _flush_outputs(outfiles)
 
 
-def write_split_tokens(
+def _write_split_tokens(
     source: bytes,
     outfiles: list[BufferedWriter],
     output_sizes: int,
@@ -60,7 +65,7 @@ def write_split_tokens(
         outfile.write(token)
 
 
-def flush_outputs(outfiles: list[BufferedWriter]) -> None:
+def _flush_outputs(outfiles: list[BufferedWriter]) -> None:
     for outfile in outfiles:
         outfile.flush()
 
@@ -73,16 +78,16 @@ def _split1(source: bytes) -> tuple[bytes, bytes]:
     return bytes(token), bytes(cipher_text)
 
 
-def split_bytes_into(source: bytes, n: int) -> list[bytes]:
+def split_bytes_into(source: bytes, into: int) -> list[bytes]:
     """Split a bytes into multiple token bytes.
 
     Args:
         source: The bytes to be split.
-        n: The number of tokens to be generated.
+        into: The number of tokens to be generated.
     """
     tokens = []
     token = source
-    for _ in range(n - 1):
+    for _ in range(into - 1):
         generated, token = _split1(token)
         tokens.append(generated)
     tokens.append(token)
@@ -119,7 +124,9 @@ def merge_text(tokens: list[bytes], *, encoding: str = "utf-8") -> str:
 
     Args:
         tokens: The tokens to be merged.
-        encoding: The encoding of the text.
+        encoding: The encoding used to decode the merged bytes. It must
+            match the encoding passed to split_text because tokens do not
+            carry encoding metadata.
     """
     clear_text_bytes = merge_bytes_into(tokens)
     return clear_text_bytes.decode(encoding)
@@ -144,6 +151,7 @@ def merge_io(
         if not clear_text_bytes:
             break
         outfile.write(clear_text_bytes)
+    outfile.flush()
 
 
 def _generate_random_token(size: int) -> bytes:
