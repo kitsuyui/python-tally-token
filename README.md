@@ -121,6 +121,20 @@ This is useful for split binary data.
 b'Hello, World!'
 ```
 
+# Security and Logging
+
+This library handles secret material (token bytes) and follows a
+**log-nothing policy**: no secret data should appear in log output.
+
+- The library installs a `NullHandler` on its root logger so log records
+  are silently discarded unless the *application* configures a handler.
+  This is the [standard practice for libraries](https://docs.python.org/3/howto/logging.html#configuring-logging-for-a-library).
+- **Do not log token bytes or plain-text secrets** in your application code.
+  Functions such as `split_bytes_into`, `_split1`, `write_split_tokens`, and
+  `merge_bytes_into` operate directly on secret material.
+- If you add debug logging to code that calls this library, ensure no
+  token content is captured in log records or exception messages.
+
 # Reference
 
 - Tally stick https://en.wikipedia.org/wiki/Tally_stick
