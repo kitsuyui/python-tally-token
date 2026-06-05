@@ -15,6 +15,12 @@ from ._version import __version__
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
+# Token format version for split_bytes_into / merge_bytes_into.
+# Version 0: raw XOR pads, no header. Tokens are same length as source.
+# Bump this and add a version-byte prefix if the algorithm ever changes
+# so that old and new tokens can be distinguished at merge time.
+SPLIT_TOKEN_FORMAT_VERSION = 0
+
 _SESSION_ID_SIZE = 16
 
 
@@ -85,6 +91,9 @@ def _split1(source: bytes) -> tuple[bytes, bytes]:
 
 def _split_bytes_raw(source: bytes, into: int) -> list[bytes]:
     """Split bytes into raw tokens without session ID (for streaming use)."""
+    if into <= 0:
+        msg = f"n must be a positive integer, got {into}"
+        raise ValueError(msg)
     tokens = []
     token = source
     for _ in range(into - 1):
@@ -116,8 +125,15 @@ def _merge1(token1: bytes, token2: bytes) -> bytes:
     return bytes(clear_text)
 
 
+def _validate_tokens_nonempty(tokens: list[bytes]) -> None:
+    if not tokens:
+        msg = "tokens must not be empty"
+        raise ValueError(msg)
+
+
 def _merge_bytes_raw(tokens: list[bytes]) -> bytes:
     """Merge raw token chunks without session ID verification."""
+    _validate_tokens_nonempty(tokens)
     token = tokens[0]
     for i in range(1, len(tokens)):
         if len(tokens[i]) != len(token):
@@ -195,6 +211,7 @@ def _generate_random_token(size: int) -> bytes:
 
 
 __all__ = [
+    "SPLIT_TOKEN_FORMAT_VERSION",
     "__version__",
     "merge_bytes_into",
     "merge_io",
