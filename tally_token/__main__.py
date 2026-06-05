@@ -53,12 +53,24 @@ def split_main(
         raise
 
 
+def _check_token_file_sizes(source_paths: list[str]) -> None:
+    sizes = [(p, Path(p).stat().st_size) for p in source_paths]
+    unique_sizes = {s for _, s in sizes}
+    if len(unique_sizes) > 1:
+        details = ", ".join(f"{p!r}: {s} bytes" for p, s in sizes)
+        raise ValueError(
+            "token files have mismatched sizes; they may be truncated or from "
+            f"different split operations ({details})",
+        )
+
+
 def merge_main(
     *,
     dest_path: str,
     source_paths: list[str],
     bufsize: int = 1024,
 ) -> None:
+    _check_token_file_sizes(source_paths)
     dest = Path(dest_path)
     fd, tmp = tempfile.mkstemp(dir=dest.parent)
     tmp_path = Path(tmp)
@@ -112,7 +124,7 @@ def main() -> None:
     merge_parser.add_argument(
         "--bufsize",
         type=int,
-        default=1024**2,
+        default=1024 * 2,
         help="The buffer size.",
     )
 
