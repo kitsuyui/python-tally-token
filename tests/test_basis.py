@@ -1,5 +1,7 @@
 import random
+import tempfile
 from io import BytesIO
+from pathlib import Path
 
 import pytest
 
@@ -9,6 +11,11 @@ from tally_token import (
     merge_text,
     split_bytes_into,
     split_text,
+)
+from tally_token.__main__ import (
+    _check_token_file_sizes,
+    merge_main,
+    split_main,
 )
 
 
@@ -74,6 +81,36 @@ def test_encoding():
     clear_text = "こんにちは"
     tokens = split_text(clear_text, encoding="CP932")
     assert clear_text == merge_text(tokens, encoding="CP932")
+
+
+def test_merge_main_rejects_mismatched_file_sizes():
+    """Test that merge_main raises ValueError with file path info on size mismatch."""  # noqa: E501
+    with tempfile.TemporaryDirectory() as tmpdir:
+        p = Path(tmpdir)
+        src = p / "source.bin"
+        t1 = p / "token1.bin"
+        t2 = p / "token2.bin"
+        merged = p / "merged.bin"
+
+        src.write_bytes(b"Hello World!")
+        split_main(source_path=str(src), dest_paths=[str(t1), str(t2)])
+
+        # Truncate one token file to simulate partial write / download
+        original = t2.read_bytes()
+        t2.write_bytes(original[:-4])
+
+        with pytest.raises(ValueError, match="mismatched sizes"):
+            merge_main(dest_path=str(merged), source_paths=[str(t1), str(t2)])
+
+
+def test_check_token_file_sizes_passes_equal_sizes():
+    """Test that _check_token_file_sizes does not raise when all sizes match."""  # noqa: E501
+    with tempfile.TemporaryDirectory() as tmpdir:
+        p = Path(tmpdir)
+        for i in range(3):
+            (p / f"token{i}.bin").write_bytes(b"x" * 100)
+        paths = [str(p / f"token{i}.bin") for i in range(3)]
+        _check_token_file_sizes(paths)  # Should not raise
 
 
 def test_merge_text_requires_same_encoding():

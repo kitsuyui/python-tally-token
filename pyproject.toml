@@ -10,7 +10,7 @@ authors = [
     {name = "Yui KITSU", email = "kitsuyui+github@kitsuyui.com"}
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "License :: OSI Approved :: BSD License",
     "Topic :: Security :: Cryptography",
     "Programming Language :: Python :: 3.10",
@@ -25,6 +25,7 @@ tally-token = "tally_token.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/kitsuyui/python-tally-token"
+Changelog = "https://github.com/kitsuyui/python-tally-token/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [

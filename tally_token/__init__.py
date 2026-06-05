@@ -16,6 +16,12 @@ from ._version import __version__
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
+# Token format version for split_bytes_into / merge_bytes_into.
+# Version 0: raw XOR pads, no header. Tokens are same length as source.
+# Bump this and add a version-byte prefix if the algorithm ever changes
+# so that old and new tokens can be distinguished at merge time.
+SPLIT_TOKEN_FORMAT_VERSION = 0
+
 
 def split_text(
     clear_text: str,
@@ -106,6 +112,12 @@ def _merge1(token1: bytes, token2: bytes) -> bytes:
     return bytes(clear_text)
 
 
+def _validate_tokens_nonempty(tokens: list[bytes]) -> None:
+    if not tokens:
+        msg = "tokens must not be empty"
+        raise ValueError(msg)
+
+
 def _check_token_lengths(tokens: list[bytes]) -> None:
     expected = len(tokens[0])
     for i, t in enumerate(tokens[1:], start=1):
@@ -122,9 +134,7 @@ def merge_bytes_into(tokens: list[bytes]) -> bytes:
     Args:
         tokens: The tokens to be merged. Must not be empty.
     """
-    if not tokens:
-        msg = "tokens must not be empty"
-        raise ValueError(msg)
+    _validate_tokens_nonempty(tokens)
     _check_token_lengths(tokens)
     return functools.reduce(_merge1, tokens)
 
@@ -169,6 +179,7 @@ def _generate_random_token(size: int) -> bytes:
 
 
 __all__ = [
+    "SPLIT_TOKEN_FORMAT_VERSION",
     "__version__",
     "merge_bytes_into",
     "merge_io",
