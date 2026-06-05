@@ -15,6 +15,12 @@ from ._version import __version__
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
+# Token format version for split_bytes_into / merge_bytes_into.
+# Version 0: raw XOR pads, no header. Tokens are same length as source.
+# Bump this and add a version-byte prefix if the algorithm ever changes
+# so that old and new tokens can be distinguished at merge time.
+SPLIT_TOKEN_FORMAT_VERSION = 0
+
 
 def split_text(
     clear_text: str,
@@ -159,6 +165,7 @@ def _generate_random_token(size: int) -> bytes:
 
 
 __all__ = [
+    "SPLIT_TOKEN_FORMAT_VERSION",
     "__version__",
     "merge_bytes_into",
     "merge_io",
