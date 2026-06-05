@@ -7,6 +7,7 @@ from tally_token import (
     merge_bytes_into,
     merge_io,
     merge_text,
+    split_bytes_into,
     split_text,
 )
 
@@ -81,3 +82,21 @@ def test_merge_text_requires_same_encoding():
 
     with pytest.raises(UnicodeDecodeError):
         merge_text(tokens, encoding="utf-8")
+
+
+def test_split_bytes_into_rejects_zero():
+    """Test that split_bytes_into raises ValueError for n=0."""
+    with pytest.raises(ValueError, match="n must be a positive integer"):
+        split_bytes_into(b"hello", 0)
+
+
+def test_split_bytes_into_rejects_negative():
+    """Test that split_bytes_into raises ValueError for negative n."""
+    with pytest.raises(ValueError, match="n must be a positive integer"):
+        split_bytes_into(b"hello", -1)
+
+
+def test_merge_bytes_into_rejects_empty():
+    """Test that merge_bytes_into raises ValueError for empty token list."""
+    with pytest.raises(ValueError, match="tokens must not be empty"):
+        merge_bytes_into([])
