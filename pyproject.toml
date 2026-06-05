@@ -25,6 +25,7 @@ tally-token = "tally_token.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/kitsuyui/python-tally-token"
+Changelog = "https://github.com/kitsuyui/python-tally-token/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
