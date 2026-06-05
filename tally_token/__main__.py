@@ -75,18 +75,22 @@ def main() -> None:
     merge_parser.add_argument(
         "--bufsize",
         type=int,
-        default=1024**2,
+        default=1024 * 2,
         help="The buffer size.",
     )
 
     args = parser.parse_args()
     if args.command == "split":
         split_main(
-            source_path=args.src, dest_paths=args.dst, bufsize=args.bufsize,
+            source_path=args.src,
+            dest_paths=args.dst,
+            bufsize=args.bufsize,
         )
     elif args.command == "merge":
         merge_main(
-            dest_path=args.dst, source_paths=args.src, bufsize=args.bufsize,
+            dest_path=args.dst,
+            source_paths=args.src,
+            bufsize=args.bufsize,
         )
 
 
