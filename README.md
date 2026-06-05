@@ -14,6 +14,10 @@ tally-token is a Python library for split data into tokens with same length.
 <a href="https://en.wikipedia.org/wiki/Tally_stick#/media/File:Medieval_tally_sticks.jpg" target="_blank"><img src="https://github.com/kitsuyui/python-tally-token/assets/2596972/103a0184-c508-4ce6-9ed3-1b1eb58bc6cc" style="width:20rem" /></a>
 > Medieval English split tally stick (front and reverse view). The stick is notched and inscribed to record a debt owed to the rural dean of Preston Candover, Hampshire, of a tithe of 20d each on 32 sheep, amounting to a total sum of £2 13s. 4d.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes and upgrade notes.
+
 # Usage
 
 ## Install

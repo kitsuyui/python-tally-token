@@ -25,7 +25,11 @@ def test_cli():
     with tempfile.TemporaryDirectory() as tmpdir:
         subprocess.check_call(
             [
-                "dd", "if=/dev/urandom", "of=example.bin", "bs=1M", "count=10",
+                "dd",
+                "if=/dev/urandom",
+                "of=example.bin",
+                "bs=1M",
+                "count=10",
             ],
             cwd=tmpdir,
         )
