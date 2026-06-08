@@ -6,6 +6,7 @@ The secret can be recovered only if all the tokens are merged together.
 
 from __future__ import annotations
 
+import functools
 import logging
 import secrets
 from io import BufferedReader, BufferedWriter
@@ -89,10 +90,11 @@ def split_bytes_into(source: bytes, into: int) -> list[bytes]:
 
     Args:
         source: The bytes to be split.
-        into: The number of tokens to be generated.
+        into: The number of tokens to generate. Must be >= 1.
+            When into=1, returns [source] without XOR splitting.
     """
-    if into <= 0:
-        msg = f"n must be a positive integer, got {into}"
+    if into < 1:
+        msg = f"into must be a positive integer, got {into}"
         raise ValueError(msg)
     tokens = []
     token = source
@@ -116,23 +118,25 @@ def _validate_tokens_nonempty(tokens: list[bytes]) -> None:
         raise ValueError(msg)
 
 
+def _check_token_lengths(tokens: list[bytes]) -> None:
+    expected = len(tokens[0])
+    for i, t in enumerate(tokens[1:], start=1):
+        if len(t) != expected:
+            msg = (
+                f"token at index {i} has length {len(t)}, expected {expected}"
+            )
+            raise ValueError(msg)
+
+
 def merge_bytes_into(tokens: list[bytes]) -> bytes:
     """Merge tokens into a secret bytes.
 
     Args:
-        tokens: The tokens to be merged.
+        tokens: The tokens to be merged. Must not be empty.
     """
     _validate_tokens_nonempty(tokens)
-    token = tokens[0]
-    for i in range(1, len(tokens)):
-        if len(tokens[i]) != len(token):
-            msg = (
-                f"token at index {i} has length {len(tokens[i])}, "
-                f"expected {len(token)}"
-            )
-            raise ValueError(msg)
-        token = _merge1(token, tokens[i])
-    return token
+    _check_token_lengths(tokens)
+    return functools.reduce(_merge1, tokens)
 
 
 def merge_text(tokens: list[bytes], *, encoding: str = "utf-8") -> str:

@@ -108,6 +108,9 @@ select = [
     "S101",
     "S607",
 ]
+"tally_token/_version.py" = [
+    "RUF022",
+]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 3
