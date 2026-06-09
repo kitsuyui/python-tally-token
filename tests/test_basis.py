@@ -27,10 +27,10 @@ def test_split_merge():
 
 
 def test_split_into_one_and_merge():
-    """Test that split_text with into=1 returns the original text."""
+    """Test that split_text with into=1 round-trips correctly."""
     clear_text = "Hello World!"
     tokens = split_text(clear_text, into=1)
-    assert tokens == [b"Hello World!"]
+    assert len(tokens) == 1
     assert clear_text == merge_text(tokens)
 
 
@@ -119,6 +119,23 @@ def test_merge_text_requires_same_encoding():
 
     with pytest.raises(UnicodeDecodeError):
         merge_text(tokens, encoding="utf-8")
+
+
+def test_merge_bytes_into_rejects_tokens_from_different_splits():
+    """Test that merging tokens from different splits raises ValueError."""
+    token_a1, _token_a2 = split_bytes_into(b"Hello World!", 2)
+    _token_b1, token_b2 = split_bytes_into(b"Other Secret", 2)
+    with pytest.raises(ValueError, match="different splits"):
+        merge_bytes_into([token_a1, token_b2])
+
+
+def test_merge_io_rejects_tokens_from_different_splits():
+    """Test that merge_io raises ValueError for tokens from different splits."""  # noqa: E501
+    token_a1, _token_a2 = split_bytes_into(b"Hello World!", 2)
+    _token_b1, token_b2 = split_bytes_into(b"Other Secret", 2)
+    output = BytesIO()
+    with pytest.raises(ValueError, match="different splits"):
+        merge_io([BytesIO(token_a1), BytesIO(token_b2)], output)
 
 
 def test_split_bytes_into_rejects_zero():
