@@ -104,8 +104,9 @@ def main() -> None:
             "Example:\n"
             "tally-token split example.bin "
             "example.bin.1 example.bin.2 example.bin.3\n"
-            "tally-token merge example-merged.bin "
-            "example.bin.1 example.bin.2 example.bin.3"
+            "tally-token merge "
+            "example.bin.1 example.bin.2 example.bin.3 "
+            "--output example-merged.bin"
         ),
     )
     split_parser = subparsers.add_parser("split")
@@ -119,8 +120,13 @@ def main() -> None:
     )
 
     merge_parser = subparsers.add_parser("merge")
-    merge_parser.add_argument("dst", help="The destination file.")
     merge_parser.add_argument("src", nargs="+", help="The source files.")
+    merge_parser.add_argument(
+        "--output",
+        "-o",
+        required=True,
+        help="The destination file.",
+    )
     merge_parser.add_argument(
         "--bufsize",
         type=int,
@@ -137,7 +143,7 @@ def main() -> None:
         )
     elif args.command == "merge":
         merge_main(
-            dest_path=args.dst,
+            dest_path=args.output,
             source_paths=args.src,
             bufsize=args.bufsize,
         )
