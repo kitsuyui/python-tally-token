@@ -132,6 +132,29 @@ b'Hello, World!'
 
 # Security and Logging
 
+## Security model
+
+This library implements an n-of-n XOR split. All tokens produced by the same
+split operation are required to recover the original bytes. It is not a k-of-n
+threshold scheme such as Shamir's Secret Sharing, so any missing token prevents
+recovery.
+
+Tokens include a shared session ID so `merge_bytes_into` and `merge_io` can
+reject tokens from different split operations. That check is not a message
+authentication or tamper-detection mechanism: if a token from the correct
+session is modified, merging can still return modified bytes without raising an
+error.
+
+Calling `split_bytes_into(secret, 1)` or `split_text(secret, into=1)` does not
+protect confidentiality. The single returned token contains the original secret
+payload after the session ID, so use at least two tokens when the goal is to
+split secret material.
+
+Report vulnerabilities through the private channel described in
+[SECURITY.md](SECURITY.md).
+
+## Logging policy
+
 This library handles secret material (token bytes) and follows a
 **log-nothing policy**: no secret data should appear in log output.
 
