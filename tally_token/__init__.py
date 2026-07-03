@@ -72,7 +72,7 @@ def _write_split_tokens_raw(
     output_sizes: int,
 ) -> None:
     token_bytes = _split_bytes_raw(source, output_sizes)
-    for token, outfile in zip(token_bytes, outfiles, strict=False):
+    for token, outfile in zip(token_bytes, outfiles, strict=True):
         outfile.write(token)
 
 
