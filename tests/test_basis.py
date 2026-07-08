@@ -121,6 +121,18 @@ def test_merge_text_requires_same_encoding():
         merge_text(tokens, encoding="utf-8")
 
 
+def test_merge_bytes_into_rejects_empty_list():
+    """Test that merge_bytes_into raises ValueError for empty token list."""
+    with pytest.raises(ValueError, match="tokens must not be empty"):
+        merge_bytes_into([])
+
+
+def test_merge_text_rejects_empty_list():
+    """Test that merge_text raises ValueError for empty token list."""
+    with pytest.raises(ValueError, match="tokens must not be empty"):
+        merge_text([])
+
+
 def test_merge_bytes_into_rejects_tokens_from_different_splits():
     """Test that merging tokens from different splits raises ValueError."""
     token_a1, _token_a2 = split_bytes_into(b"Hello World!", 2)
@@ -139,18 +151,18 @@ def test_merge_io_rejects_tokens_from_different_splits():
 
 
 def test_split_bytes_into_rejects_zero():
-    """Test that split_bytes_into raises ValueError for n=0."""
-    with pytest.raises(ValueError, match="n must be a positive integer"):
+    """Test that split_bytes_into raises ValueError for into=0."""
+    with pytest.raises(
+        ValueError,
+        match="into must be a positive integer, got 0",
+    ):
         split_bytes_into(b"hello", 0)
 
 
 def test_split_bytes_into_rejects_negative():
-    """Test that split_bytes_into raises ValueError for negative n."""
-    with pytest.raises(ValueError, match="n must be a positive integer"):
+    """Test that split_bytes_into raises ValueError for negative into."""
+    with pytest.raises(
+        ValueError,
+        match="into must be a positive integer, got -1",
+    ):
         split_bytes_into(b"hello", -1)
-
-
-def test_merge_bytes_into_rejects_empty():
-    """Test that merge_bytes_into raises ValueError for empty token list."""
-    with pytest.raises(ValueError, match="tokens must not be empty"):
-        merge_bytes_into([])

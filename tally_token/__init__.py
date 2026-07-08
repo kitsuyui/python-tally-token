@@ -6,6 +6,7 @@ The secret can be recovered only if all the tokens are merged together.
 
 from __future__ import annotations
 
+import functools
 import logging
 import secrets
 from io import BufferedReader, BufferedWriter
@@ -91,8 +92,8 @@ def _split1(source: bytes) -> tuple[bytes, bytes]:
 
 def _split_bytes_raw(source: bytes, into: int) -> list[bytes]:
     """Split bytes into raw tokens without session ID (for streaming use)."""
-    if into <= 0:
-        msg = f"n must be a positive integer, got {into}"
+    if into < 1:
+        msg = f"into must be a positive integer, got {into}"
         raise ValueError(msg)
     tokens = []
     token = source
@@ -134,16 +135,18 @@ def _validate_tokens_nonempty(tokens: list[bytes]) -> None:
 def _merge_bytes_raw(tokens: list[bytes]) -> bytes:
     """Merge raw token chunks without session ID verification."""
     _validate_tokens_nonempty(tokens)
-    token = tokens[0]
-    for i in range(1, len(tokens)):
-        if len(tokens[i]) != len(token):
+    _check_token_lengths(tokens)
+    return functools.reduce(_merge1, tokens)
+
+
+def _check_token_lengths(tokens: list[bytes]) -> None:
+    expected = len(tokens[0])
+    for i, t in enumerate(tokens[1:], start=1):
+        if len(t) != expected:
             msg = (
-                f"token at index {i} has length {len(tokens[i])}, "
-                f"expected {len(token)}"
+                f"token at index {i} has length {len(t)}, expected {expected}"
             )
             raise ValueError(msg)
-        token = _merge1(token, tokens[i])
-    return token
 
 
 def _check_session_ids(session_ids: list[bytes]) -> None:
