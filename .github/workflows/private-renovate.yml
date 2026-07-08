@@ -1,0 +1,15 @@
+name: Private Renovate
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 20 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  renovate:
+    uses: kitsuyui/gh-actions-workflows/.github/workflows/private-renovate.yml@716161c37741888ae80a615b6f2f6d5d2ba01a67 # main
+    secrets:
+      RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}

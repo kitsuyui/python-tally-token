@@ -34,7 +34,7 @@ usage: tally-token [-h] {split,merge} ...
 
 positional arguments:
   {split,merge}  Commands: split: split a file into multiple files merge: merge multiple files into a fileExample: tally-token split example.bin
-                 example.bin.1 example.bin.2 example.bin.3 tally-token merge example-merged.bin example.bin.1 example.bin.2 example.bin.3
+                 example.bin.1 example.bin.2 example.bin.3 tally-token merge example.bin.1 example.bin.2 example.bin.3 --output example-merged.bin
 
 options:
   -h, --help     show this help message and exit
@@ -53,7 +53,7 @@ $ tally-token split something.bin split-1.bin split-2.bin split-3.bin
 You can use `merge` to merge multiple files into a file.
 
 ```sh
-$ tally-token merge merged.bin split-1.bin split-2.bin split-3.bin
+$ tally-token merge split-1.bin split-2.bin split-3.bin --output merged.bin
 ```
 
 ### Large files
@@ -65,7 +65,7 @@ $ dd if=/dev/urandom of=original.1g.bin bs=1G count=1
 $ tally-token split original.1g.bin split-1.bin split-2.bin split-3.bin
 $ shasum -a 256 original.1g.bin
 > 736a344d99d27e2dcdab8bc37ca94c83eda26f812a3dee87ac98989f89b3f965 original.1g.bin
-$ tally-token merge recovery.1g.bin split-1.bin split-2.bin split-3.bin
+$ tally-token merge split-1.bin split-2.bin split-3.bin --output recovery.1g.bin
 $ shasum -a 256 recovery.1g.bin
 > 736a344d99d27e2dcdab8bc37ca94c83eda26f812a3dee87ac98989f89b3f965 recovery.1g.bin
 ```
@@ -132,6 +132,29 @@ b'Hello, World!'
 
 # Security and Logging
 
+## Security model
+
+This library implements an n-of-n XOR split. All tokens produced by the same
+split operation are required to recover the original bytes. It is not a k-of-n
+threshold scheme such as Shamir's Secret Sharing, so any missing token prevents
+recovery.
+
+Tokens include a shared session ID so `merge_bytes_into` and `merge_io` can
+reject tokens from different split operations. That check is not a message
+authentication or tamper-detection mechanism: if a token from the correct
+session is modified, merging can still return modified bytes without raising an
+error.
+
+Calling `split_bytes_into(secret, 1)` or `split_text(secret, into=1)` does not
+protect confidentiality. The single returned token contains the original secret
+payload after the session ID, so use at least two tokens when the goal is to
+split secret material.
+
+Report vulnerabilities through the private channel described in
+[SECURITY.md](SECURITY.md).
+
+## Logging policy
+
 This library handles secret material (token bytes) and follows a
 **log-nothing policy**: no secret data should appear in log output.
 
@@ -150,6 +173,34 @@ This library handles secret material (token bytes) and follows a
 - Tessera or Symbolum (Hospitium token) https://en.wikipedia.org/wiki/Hospitium
 - 割符 https://ja.wikipedia.org/wiki/%E5%89%B2%E7%AC%A6
 - One-time pad https://en.wikipedia.org/wiki/One-time_pad
+
+## Development
+
+This repository uses [lefthook](https://lefthook.dev/) to run the same checks as CI
+locally, so problems surface before they reach CI.
+
+```sh
+# Install dependencies
+uv sync
+
+# Install the Git hooks (once; requires lefthook on your PATH)
+lefthook install
+```
+
+Once installed, the hooks run automatically:
+
+- **pre-commit**: `uv run poe check`
+- **pre-push**: `uv run poe check` and `uv run poe test`
+
+You can also run the checks manually:
+
+```sh
+uv run poe check
+uv run poe test
+```
+
+CI still runs the full matrix (see `.github/workflows/`); the hooks only bring that
+feedback earlier on your machine.
 
 # LICENSE
 

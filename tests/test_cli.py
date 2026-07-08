@@ -55,10 +55,11 @@ def test_cli():
                 "-m",
                 "tally_token",
                 "merge",
-                f"{tmpdir}/example-merged.bin",
                 f"{tmpdir}/example.bin.1",
                 f"{tmpdir}/example.bin.2",
                 f"{tmpdir}/example.bin.3",
+                "--output",
+                f"{tmpdir}/example-merged.bin",
             ],
         )
 

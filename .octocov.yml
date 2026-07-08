@@ -1,10 +1,14 @@
 # https://github.com/k1LoW/octocov?tab=readme-ov-file#configuration
 coverage:
+  acceptable: current >= 70%
   paths:
     - coverage.xml
 codeToTestRatio:
+  acceptable: 1:0.5
   code:
     - "**/*.py"
+    - "!.venv/**/*.py"
+    - "!tests/**/*.py"
   test:
     - "tests/**/*.py"
 testExecutionTime:

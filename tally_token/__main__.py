@@ -1,11 +1,37 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
+import tempfile
 from contextlib import ExitStack
+from io import BufferedWriter
 from pathlib import Path
 
 from tally_token import __version__, merge_io, split_io
+
+
+def _open_temp_writers(
+    dest_paths: list[Path],
+    stack: ExitStack,
+) -> tuple[list[Path], list[BufferedWriter]]:
+    tmp_paths: list[Path] = []
+    outfiles: list[BufferedWriter] = []
+    for dest in dest_paths:
+        fd, tmp = tempfile.mkstemp(dir=dest.parent)
+        tmp_paths.append(Path(tmp))
+        outfiles.append(stack.enter_context(os.fdopen(fd, "wb")))
+    return tmp_paths, outfiles
+
+
+def _unlink_temps(tmp_paths: list[Path]) -> None:
+    for tmp_path in tmp_paths:
+        tmp_path.unlink(missing_ok=True)
+
+
+def _rename_temps(tmp_paths: list[Path], dest_paths: list[Path]) -> None:
+    for tmp_path, dest in zip(tmp_paths, dest_paths, strict=True):
+        tmp_path.replace(dest)
 
 
 def split_main(
@@ -14,13 +40,17 @@ def split_main(
     dest_paths: list[str],
     bufsize: int = 1024,
 ) -> None:
-    # ensure closing all the files even if an exception is raised
-    with ExitStack() as stack:
-        infile = stack.enter_context(Path(source_path).open("rb"))
-        outfiles = [
-            stack.enter_context(Path(path).open("wb")) for path in dest_paths
-        ]
-        split_io(infile, list(outfiles), bufsize=bufsize)
+    dest_path_objects = [Path(p) for p in dest_paths]
+    tmp_paths: list[Path] = []
+    try:
+        with ExitStack() as stack:
+            infile = stack.enter_context(Path(source_path).open("rb"))
+            tmp_paths, outfiles = _open_temp_writers(dest_path_objects, stack)
+            split_io(infile, outfiles, bufsize=bufsize)
+        _rename_temps(tmp_paths, dest_path_objects)
+    except Exception:
+        _unlink_temps(tmp_paths)
+        raise
 
 
 def _check_token_file_sizes(source_paths: list[str]) -> None:
@@ -41,13 +71,20 @@ def merge_main(
     bufsize: int = 1024,
 ) -> None:
     _check_token_file_sizes(source_paths)
-    # ensure closing all the files even if an exception is raised
-    with ExitStack() as stack:
-        outfile = stack.enter_context(Path(dest_path).open("wb"))
-        infiles = [
-            stack.enter_context(Path(path).open("rb")) for path in source_paths
-        ]
-        merge_io(infiles, outfile, bufsize=bufsize)
+    dest = Path(dest_path)
+    fd, tmp = tempfile.mkstemp(dir=dest.parent)
+    tmp_path = Path(tmp)
+    try:
+        with ExitStack() as stack:
+            outfile: BufferedWriter = stack.enter_context(os.fdopen(fd, "wb"))
+            infiles = [
+                stack.enter_context(Path(p).open("rb")) for p in source_paths
+            ]
+            merge_io(infiles, outfile, bufsize=bufsize)
+        tmp_path.replace(dest)
+    except Exception:
+        tmp_path.unlink(missing_ok=True)
+        raise
 
 
 def main() -> None:
@@ -67,8 +104,9 @@ def main() -> None:
             "Example:\n"
             "tally-token split example.bin "
             "example.bin.1 example.bin.2 example.bin.3\n"
-            "tally-token merge example-merged.bin "
-            "example.bin.1 example.bin.2 example.bin.3"
+            "tally-token merge "
+            "example.bin.1 example.bin.2 example.bin.3 "
+            "--output example-merged.bin"
         ),
     )
     split_parser = subparsers.add_parser("split")
@@ -82,8 +120,13 @@ def main() -> None:
     )
 
     merge_parser = subparsers.add_parser("merge")
-    merge_parser.add_argument("dst", help="The destination file.")
     merge_parser.add_argument("src", nargs="+", help="The source files.")
+    merge_parser.add_argument(
+        "--output",
+        "-o",
+        required=True,
+        help="The destination file.",
+    )
     merge_parser.add_argument(
         "--bufsize",
         type=int,
@@ -100,7 +143,7 @@ def main() -> None:
         )
     elif args.command == "merge":
         merge_main(
-            dest_path=args.dst,
+            dest_path=args.output,
             source_paths=args.src,
             bufsize=args.bufsize,
         )

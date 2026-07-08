@@ -22,6 +22,8 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 # so that old and new tokens can be distinguished at merge time.
 SPLIT_TOKEN_FORMAT_VERSION = 0
 
+_SESSION_ID_SIZE = 16
+
 
 def split_text(
     clear_text: str,
@@ -55,20 +57,23 @@ def split_io(
         outfiles: The files to be written.
         bufsize: The buffer size of reading and writing.
     """
+    session_id = _generate_random_token(_SESSION_ID_SIZE)
+    for outfile in outfiles:
+        outfile.write(session_id)
     output_sizes = len(outfiles)
     for buf in iter(lambda: infile.read(bufsize), b""):
-        _write_split_tokens(buf, outfiles, output_sizes)
+        _write_split_tokens_raw(buf, outfiles, output_sizes)
 
     _flush_outputs(outfiles)
 
 
-def _write_split_tokens(
+def _write_split_tokens_raw(
     source: bytes,
     outfiles: list[BufferedWriter],
     output_sizes: int,
 ) -> None:
-    token_bytes = split_bytes_into(source, output_sizes)
-    for token, outfile in zip(token_bytes, outfiles, strict=False):
+    token_bytes = _split_bytes_raw(source, output_sizes)
+    for token, outfile in zip(token_bytes, outfiles, strict=True):
         outfile.write(token)
 
 
@@ -85,14 +90,8 @@ def _split1(source: bytes) -> tuple[bytes, bytes]:
     return bytes(token), bytes(cipher_text)
 
 
-def split_bytes_into(source: bytes, into: int) -> list[bytes]:
-    """Split a bytes into multiple token bytes.
-
-    Args:
-        source: The bytes to be split.
-        into: The number of tokens to generate. Must be >= 1.
-            When into=1, returns [source] without XOR splitting.
-    """
+def _split_bytes_raw(source: bytes, into: int) -> list[bytes]:
+    """Split bytes into raw tokens without session ID (for streaming use)."""
     if into < 1:
         msg = f"into must be a positive integer, got {into}"
         raise ValueError(msg)
@@ -103,6 +102,21 @@ def split_bytes_into(source: bytes, into: int) -> list[bytes]:
         tokens.append(generated)
     tokens.append(token)
     return tokens
+
+
+def split_bytes_into(source: bytes, into: int) -> list[bytes]:
+    """Split a bytes into multiple token bytes.
+
+    Each token is prefixed with a shared 16-byte session ID so that
+    merge_bytes_into can detect when tokens from different splits are mixed.
+
+    Args:
+        source: The bytes to be split.
+        into: The number of tokens to be generated.
+    """
+    session_id = _generate_random_token(_SESSION_ID_SIZE)
+    raw_tokens = _split_bytes_raw(source, into)
+    return [session_id + t for t in raw_tokens]
 
 
 def _merge1(token1: bytes, token2: bytes) -> bytes:
@@ -118,6 +132,13 @@ def _validate_tokens_nonempty(tokens: list[bytes]) -> None:
         raise ValueError(msg)
 
 
+def _merge_bytes_raw(tokens: list[bytes]) -> bytes:
+    """Merge raw token chunks without session ID verification."""
+    _validate_tokens_nonempty(tokens)
+    _check_token_lengths(tokens)
+    return functools.reduce(_merge1, tokens)
+
+
 def _check_token_lengths(tokens: list[bytes]) -> None:
     expected = len(tokens[0])
     for i, t in enumerate(tokens[1:], start=1):
@@ -128,15 +149,28 @@ def _check_token_lengths(tokens: list[bytes]) -> None:
             raise ValueError(msg)
 
 
+def _check_session_ids(session_ids: list[bytes]) -> None:
+    """Raise ValueError if session IDs from different splits are detected."""
+    if len(set(session_ids)) > 1:
+        raise ValueError(
+            "tokens come from different splits: session IDs do not match",
+        )
+
+
 def merge_bytes_into(tokens: list[bytes]) -> bytes:
     """Merge tokens into a secret bytes.
 
+    Verifies that all tokens share the same session ID embedded by
+    split_bytes_into, raising ValueError if tokens from different splits
+    are mixed.
+
     Args:
-        tokens: The tokens to be merged. Must not be empty.
+        tokens: The tokens to be merged.
     """
-    _validate_tokens_nonempty(tokens)
-    _check_token_lengths(tokens)
-    return functools.reduce(_merge1, tokens)
+    session_ids = [t[:_SESSION_ID_SIZE] for t in tokens]
+    _check_session_ids(session_ids)
+    stripped = [t[_SESSION_ID_SIZE:] for t in tokens]
+    return _merge_bytes_raw(stripped)
 
 
 def merge_text(tokens: list[bytes], *, encoding: str = "utf-8") -> str:
@@ -164,13 +198,14 @@ def merge_io(
         infiles: The files to be read.
         outfile: The file to be written.
     """
-    token_bytes = []
+    session_ids = [f.read(_SESSION_ID_SIZE) for f in infiles]
+    _check_session_ids(session_ids)
     while True:
-        token_bytes = [infile.read(bufsize) for infile in infiles]
-        clear_text_bytes = merge_bytes_into(token_bytes)
-        if not clear_text_bytes:
+        chunks = [f.read(bufsize) for f in infiles]
+        merged = _merge_bytes_raw(chunks)
+        if not merged:
             break
-        outfile.write(clear_text_bytes)
+        outfile.write(merged)
     outfile.flush()
 
 
