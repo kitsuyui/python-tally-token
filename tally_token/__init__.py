@@ -157,6 +157,16 @@ def _check_session_ids(session_ids: list[bytes]) -> None:
         )
 
 
+def _check_token_minimum_lengths(tokens: list[bytes]) -> None:
+    for i, token in enumerate(tokens):
+        if len(token) < _SESSION_ID_SIZE:
+            msg = (
+                "token at index "
+                f"{i} is shorter than the {_SESSION_ID_SIZE}-byte session ID"
+            )
+            raise ValueError(msg)
+
+
 def merge_bytes_into(tokens: list[bytes]) -> bytes:
     """Merge tokens into a secret bytes.
 
@@ -167,6 +177,8 @@ def merge_bytes_into(tokens: list[bytes]) -> bytes:
     Args:
         tokens: The tokens to be merged.
     """
+    _validate_tokens_nonempty(tokens)
+    _check_token_minimum_lengths(tokens)
     session_ids = [t[:_SESSION_ID_SIZE] for t in tokens]
     _check_session_ids(session_ids)
     stripped = [t[_SESSION_ID_SIZE:] for t in tokens]
@@ -199,6 +211,7 @@ def merge_io(
         outfile: The file to be written.
     """
     session_ids = [f.read(_SESSION_ID_SIZE) for f in infiles]
+    _check_token_minimum_lengths(session_ids)
     _check_session_ids(session_ids)
     while True:
         chunks = [f.read(bufsize) for f in infiles]

@@ -76,6 +76,26 @@ def test_merge_io_rejects_mismatched_token_lengths():
         merge_io([BytesIO(token1), BytesIO(token2[:-1])], output)
 
 
+def test_merge_bytes_into_rejects_equally_short_tokens():
+    """Test that merge_bytes_into rejects tokens shorter than the session ID."""
+    with pytest.raises(
+        ValueError,
+        match="token at index 0 is shorter than the 16-byte session ID",
+    ):
+        merge_bytes_into([b"A" * 15, b"A" * 15])
+
+
+def test_merge_io_rejects_equally_short_tokens():
+    """Test that merge_io rejects token files shorter than the session ID."""
+    output = BytesIO()
+
+    with pytest.raises(
+        ValueError,
+        match="token at index 0 is shorter than the 16-byte session ID",
+    ):
+        merge_io([BytesIO(b"A" * 15), BytesIO(b"A" * 15)], output)
+
+
 def test_encoding():
     """Test that split_text and merge_text accept custom encoding."""
     clear_text = "こんにちは"
