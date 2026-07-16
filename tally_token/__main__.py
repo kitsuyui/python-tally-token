@@ -34,6 +34,14 @@ def _rename_temps(tmp_paths: list[Path], dest_paths: list[Path]) -> None:
         tmp_path.replace(dest)
 
 
+def _check_duplicate_dest_paths(dest_paths: list[Path]) -> None:
+    if len(dest_paths) != len(set(dest_paths)):
+        raise ValueError(
+            "destination paths must be unique "
+            "to avoid overwriting split tokens",
+        )
+
+
 def split_main(
     *,
     source_path: str,
@@ -41,6 +49,7 @@ def split_main(
     bufsize: int = 1024,
 ) -> None:
     dest_path_objects = [Path(p) for p in dest_paths]
+    _check_duplicate_dest_paths(dest_path_objects)
     tmp_paths: list[Path] = []
     try:
         with ExitStack() as stack:
