@@ -9,7 +9,26 @@ permissions:
   contents: read
 
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      has_renovate_token: ${{ steps.check.outputs.has_renovate_token }}
+    steps:
+      - name: Check Renovate token availability
+        id: check
+        env:
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+        run: |
+          if [ -n "${RENOVATE_TOKEN:-}" ]; then
+            echo "has_renovate_token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_renovate_token=false" >> "$GITHUB_OUTPUT"
+            echo "RENOVATE_TOKEN is not configured; skipping Private Renovate run."
+          fi
+
   renovate:
+    needs: preflight
+    if: needs.preflight.outputs.has_renovate_token == 'true'
     uses: kitsuyui/gh-actions-workflows/.github/workflows/private-renovate.yml@716161c37741888ae80a615b6f2f6d5d2ba01a67 # main
     secrets:
       RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
