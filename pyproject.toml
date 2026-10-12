@@ -21,7 +21,7 @@ classifiers = [
     "Intended Audience :: Developers",
 ]
 [project.scripts]
-tally-token = "tally_token.__main__:main"
+tally-token = "tally_token.__main__:_cli_entry"
 
 [project.urls]
 Homepage = "https://github.com/kitsuyui/python-tally-token"
