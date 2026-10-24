@@ -29,6 +29,7 @@ Changelog = "https://github.com/kitsuyui/python-tally-token/blob/main/CHANGELOG.
 
 [dependency-groups]
 dev = [
+    "setuptools",
     "pytest",
     "pytest-cov",
     "poethepoet",
