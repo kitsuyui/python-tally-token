@@ -72,63 +72,49 @@ $ shasum -a 256 recovery.1g.bin
 
 ## Example
 
-### split
-
-You can use `split_text` to split text into tokens. `split_text` returns list of random bytes.
+### Split and merge text
 
 ```python
->>> from tally_token import split_text
->>> split_text("Hello, World!")
-[b'qQ\xa5\x97\x84\x88\xd7U%\xfb(k\xa1', b'94\xc9\xfb\xeb\xa4\xf7\x02J\x89D\x0f\x80']
+from tally_token import split_text, merge_text
+
+tokens = split_text("Hello, World!", into=5)
+assert merge_text(tokens) == "Hello, World!"
 ```
 
-### merge
-
-You can use `merge_text` to merge tokens into text. `merge_text` returns cleartext.
+Tokens are random opaque bytes. For a custom encoding, pass the same encoding
+to both operations; the tokens do not record it:
 
 ```python
->>> from tally_token import merge_text
->>> merge_text([b'qQ\xa5\x97\x84\x88\xd7U%\xfb(k\xa1', b'94\xc9\xfb\xeb\xa4\xf7\x02J\x89D\x0f\x80'])
-'Hello, World!'
+tokens = split_text("こんにちは", encoding="CP932")
+assert merge_text(tokens, encoding="CP932") == "こんにちは"
 ```
 
-### split with custom length
+### Bytes interface
 
 ```python
->>> from tally_token import split_text, merge_text
->>> split_text("Hello, World!", 5)
-[b'N&\xce\\\xbc6dxp\x87\xa8#z', b'\xa3D\\A\xf8\xd1KDX\x1cKx\x87', b'\xffZ\x03\xf5\x92Q\xf52\xc4\x1e\xf2\xf8\x06', b'\xaa\xdd:\x85F\xa1\xcdbp\xf3\xe6P\xe5', b'\xf0\x80\xc7\x01\xff;7;\xf3\x04\x9b\x97?']
->>> merge_text([b'N&\xce\\\xbc6dxp\x87\xa8#z', b'\xa3D\\A\xf8\xd1KDX\x1cKx\x87', b'\xffZ\x03\xf5\x92Q\xf52\xc4\x1e\xf2\xf8\x06', b'\xaa\xdd:\x85F\xa1\xcdbp\xf3\xe6P\xe5', b'\xf0\x80\xc7\x01\xff;7;\xf3\x04\x9b\x97?'])
-'Hello, World!'
+from tally_token import split_bytes_into, merge_bytes_into
+
+tokens = split_bytes_into(b"Hello, World!", into=5)
+assert merge_bytes_into(tokens) == b"Hello, World!"
 ```
 
-### split with custom encoding
+### Migrating tokens created with 0.6.3 or earlier
 
-```python
->>> from tally_token import split_text, merge_text
->>> split_text("こんにちは", encoding="CP932")
-[b'g\xc3\x12\xeal?\xe5[\x03\xad', b'\xe5r\x90\x1b\xee\xf6g\xe4\x81`']
->>> merge_text([b'g\xc3\x12\xeal?\xe5[\x03\xad', b'\xe5r\x90\x1b\xee\xf6g\xe4\x81`'], encoding="CP932")
-'こんにちは'
+The token format changed: new tokens contain a shared 16-byte session ID.
+Existing raw tokens cannot be merged by the new version. Keep every old token
+and recover the original using version 0.6.3 before upgrading. Run these
+commands outside any tally-token source checkout, for example:
+
+```sh
+python -m venv /path/to/legacy-tally-env
+/path/to/legacy-tally-env/bin/python -m pip install tally-token==0.6.3
+/path/to/legacy-tally-env/bin/python -m tally_token merge recovered.bin old-1 old-2
 ```
 
-The returned tokens are opaque bytes and do not store the encoding name. When
-splitting text with a custom encoding, keep that encoding out of band and pass
-the same value to `merge_text`; using a different encoding can raise
-`UnicodeDecodeError` or return mojibake if the bytes happen to decode.
-
-### bytes interface
-
-You can use `split_bytes_into` and `merge_bytes_into` to split and merge bytes.
-This is useful for split binary data.
-
-```python
->>> from tally_token import split_bytes_into, merge_bytes_into
->>> split_bytes_into(b"Hello, World!", 5)
-[b'\xc5b\xf4E)\xe1vO8\xff@\xf9\xdd', b'\x84\xb9X#\x85\xf5\xed\xbcM\xc4\xef\xf4\xd3', b'\xb47\xf6\xfa?\x14\xa8`\xc9\xe0\xe5\x87\x14', b'\x1cd\xb4o\xe8I:\xe5\xf6\x13\xe5\x93G', b'\xa1\xed\x82\x9f\x14e)!%\xba\xc3}|']
->>> merge_bytes_into([b'\xc5b\xf4E)\xe1vO8\xff@\xf9\xdd', b'\x84\xb9X#\x85\xf5\xed\xbcM\xc4\xef\xf4\xd3', b'\xb47\xf6\xfa?\x14\xa8`\xc9\xe0\xe5\x87\x14', b'\x1cd\xb4o\xe8I:\xe5\xf6\x13\xe5\x93G', b'\xa1\xed\x82\x9f\x14e)!%\xba\xc3}|'])
-b'Hello, World!'
-```
+Verify the recovered data, then use the new version to split it again. Protect
+and securely remove the recovered plaintext according to your threat model.
+Retain the original tokens until the replacement tokens have been verified.
+The `split_bytes_into` keyword argument formerly named `n` is now `into`.
 
 # Security and Logging
 
@@ -140,7 +126,8 @@ threshold scheme such as Shamir's Secret Sharing, so any missing token prevents
 recovery.
 
 Tokens include a shared session ID so `merge_bytes_into` and `merge_io` can
-reject tokens from different split operations. That check is not a message
+detect different session IDs. Different splits can coincidentally have matching
+IDs, so this does not guarantee that mixed tokens are rejected. The check is not a message
 authentication or tamper-detection mechanism: if a token from the correct
 session is modified, merging can still return modified bytes without raising an
 error.
