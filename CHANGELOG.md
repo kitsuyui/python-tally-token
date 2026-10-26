@@ -8,6 +8,13 @@ and historical release metadata are available from
 
 ## Unreleased
 
+### Changed
+
+- Tokens now include a shared 16-byte session ID and are incompatible with
+  tokens from 0.6.3 or earlier. Recover old tokens with 0.6.3 and re-split
+  using the new version; see the README migration guide.
+- Rename the `split_bytes_into` keyword argument `n` to `into`.
+
 ### Added
 
 - Added this changelog and linked it from the README and package metadata.
