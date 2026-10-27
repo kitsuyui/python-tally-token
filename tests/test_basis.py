@@ -118,9 +118,11 @@ def test_merge_main_rejects_mismatched_file_sizes():
         # Truncate one token file to simulate partial write / download
         original = t2.read_bytes()
         t2.write_bytes(original[:-4])
+        merged.write_bytes(b"previous output")
 
         with pytest.raises(ValueError, match="mismatched sizes"):
             merge_main(dest_path=str(merged), source_paths=[str(t1), str(t2)])
+        assert merged.read_bytes() == b"previous output"
 
 
 def test_check_token_file_sizes_passes_equal_sizes():
