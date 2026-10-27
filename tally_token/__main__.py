@@ -7,6 +7,9 @@ import tempfile
 from contextlib import ExitStack
 from io import BufferedWriter
 from pathlib import Path
+from typing import cast
+
+from kitsuyui.fileio import atomic_write
 
 from tally_token import __version__, merge_io, split_io
 
@@ -81,19 +84,14 @@ def merge_main(
 ) -> None:
     _check_token_file_sizes(source_paths)
     dest = Path(dest_path)
-    fd, tmp = tempfile.mkstemp(dir=dest.parent)
-    tmp_path = Path(tmp)
-    try:
-        with ExitStack() as stack:
-            outfile: BufferedWriter = stack.enter_context(os.fdopen(fd, "wb"))
-            infiles = [
-                stack.enter_context(Path(p).open("rb")) for p in source_paths
-            ]
-            merge_io(infiles, outfile, bufsize=bufsize)
-        tmp_path.replace(dest)
-    except Exception:
-        tmp_path.unlink(missing_ok=True)
-        raise
+    with (
+        atomic_write(dest, durability="none") as outfile,
+        ExitStack() as stack,
+    ):
+        infiles = [
+            stack.enter_context(Path(p).open("rb")) for p in source_paths
+        ]
+        merge_io(infiles, cast(BufferedWriter, outfile), bufsize=bufsize)
 
 
 def main() -> None:
